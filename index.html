@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://telegram.org"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       display: flex;
@@ -12,6 +12,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      padding: 20px;
       background-color: #1c1c1d;
       color: white;
       font-family: sans-serif;
@@ -26,26 +27,44 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    #log {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #aaaaaa;
+      word-break: break-word;
+    }
   </style>
 </head>
 <body>
   <button id="btn">Выдать доступ к статусу</button>
-  <p id="info"></p>
+  <div id="log">Ожидание нажатия...</div>
 
   <script>
     const tg = window.Telegram.WebApp;
+    const log = document.getElementById('log');
     tg.ready();
 
+    // Выводим диагностику сразу при открытии
+    const user = tg.initDataUnsafe?.user;
+    log.innerHTML = 
+      `Версия API: ${tg.version}<br>` +
+      `Платформа: ${tg.platform}<br>` +
+      `Premium: ${user?.is_premium ? "Да ✅" : "Нет ❌ (без него не сработает)"}`;
+
+    // Слушаем системное событие ответа от Telegram
+    tg.onEvent('emojiStatusAccessRequested', (event) => {
+      log.innerHTML += `<br>Событие от Telegram: <b>${event.status}</b>`;
+    });
+
     document.getElementById('btn').onclick = function() {
-      if (!tg.requestEmojiStatusAccess) {
-        document.getElementById('info').innerText = "Ошибка: обновите Telegram";
-        return;
+      log.innerHTML += "<br>Нажата кнопка, отправляю запрос...";
+      try {
+        tg.requestEmojiStatusAccess((allowed) => {
+          log.innerHTML += `<br>Ответ callback: <b>${allowed ? "Разрешено ✅" : "Отклонено ❌"}</b>`;
+        });
+      } catch (e) {
+        log.innerHTML += `<br>Ошибка JS: ${e.message}`;
       }
-      tg.requestEmojiStatusAccess((allowed) => {
-        document.getElementById('info').innerText = allowed 
-          ? "✅ Готово! Доступ разрешен." 
-          : "❌ Доступ отклонен.";
-      });
     };
   </script>
 </body>
