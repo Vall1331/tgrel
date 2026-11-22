@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://telegram.org"></script>
+</head>
+<body>
+  <script>
+    Telegram.WebApp.ready();
+    Telegram.WebApp.requestEmojiStatusAccess((allowed) => {
+      document.body.innerHTML = allowed 
+        ? "<h2>Готово! Доступ разрешен, страницу можно закрыть.</h2>" 
+        : "<h2>Доступ отклонен.</h2>";
+    });
+  </script>
+</body>
+</html>
